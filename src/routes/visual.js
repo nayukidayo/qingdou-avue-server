@@ -212,14 +212,11 @@ module.exports = async f => {
               type: 'object',
               properties: {
                 id: { type: 'number' },
-                categoryId: { type: 'number' },
-                password: { type: 'string' },
-                title: { type: 'string' },
                 backgroundUrl: { type: 'string' },
               },
             },
           },
-          required: ['visual'],
+          required: ['config', 'visual'],
         },
       },
     },
@@ -228,16 +225,53 @@ module.exports = async f => {
 
       // 事务
       let rs = await f.db.query({
-        sql: `UPDATE blade_visual SET password=?,title=?,background_url=? WHERE id=?`,
-        values: [visual.password, visual.title, visual.backgroundUrl, visual.id],
+        sql: `UPDATE blade_visual SET background_url=? WHERE id=?`,
+        values: [visual.backgroundUrl, visual.id],
       })
 
-      if (config) {
-        rs = await f.db.query({
-          sql: `UPDATE blade_visual_config SET component=?,detail=? WHERE id=?`,
-          values: [config.component, config.detail, config.id],
-        })
+      rs = await f.db.query({
+        sql: `UPDATE blade_visual_config SET component=?,detail=? WHERE id=?`,
+        values: [config.component, config.detail, config.id],
+      })
+
+      return {
+        code: 200,
+        msg: '操作成功',
+        success: true,
+        data: {},
       }
+    }
+  )
+  // 修改
+  f.patch(
+    '/visual/update',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            visual: {
+              type: 'object',
+              properties: {
+                id: { type: 'number' },
+                categoryId: { type: 'number' },
+                password: { type: 'string' },
+                title: { type: 'string' },
+              },
+            },
+          },
+          required: ['visual'],
+        },
+      },
+    },
+    async req => {
+      const { visual } = req.body
+
+      // 事务
+      await f.db.query({
+        sql: `UPDATE blade_visual SET category_id=?,password=?,title=? WHERE id=?`,
+        values: [visual.categoryId, visual.password, visual.title, visual.id],
+      })
 
       return {
         code: 200,
@@ -305,11 +339,9 @@ module.exports = async f => {
 
       rs = rs[0][0]
       const visual = {
-        status: rs.status,
-        is_deleted: rs.is_deleted,
-        category_id: rs.category_id,
-        password: rs.password,
         title: rs.title,
+        category_id: rs.category_id,
+        background_url: rs.background_url,
       }
       const config = {
         component: rs.component,
