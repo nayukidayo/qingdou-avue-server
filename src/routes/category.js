@@ -173,7 +173,7 @@ module.exports = async f => {
     '/category/update',
     {
       schema: {
-        querystring: {
+        body: {
           type: 'object',
           properties: {
             name: { type: 'string' },
@@ -186,12 +186,10 @@ module.exports = async f => {
     async req => {
       const { name, id } = req.body
 
-      const rs = await f.db.query({
+      await f.db.query({
         sql: `UPDATE blade_visual_category SET name=? WHERE id=?`,
         values: [name, id],
       })
-
-      if (rs[0].changedRows !== 1) throw new Error()
 
       return {
         code: 200,
@@ -207,7 +205,7 @@ module.exports = async f => {
     '/category/remove',
     {
       schema: {
-        body: {
+        querystring: {
           type: 'object',
           properties: {
             ids: { type: 'number' },
@@ -219,12 +217,10 @@ module.exports = async f => {
     async req => {
       const { ids } = req.query
 
-      const rs = await f.db.query({
+      await f.db.query({
         sql: `UPDATE blade_visual_category SET is_deleted=1 WHERE id=?`,
         values: [ids],
       })
-
-      if (rs[0].changedRows !== 1) throw new Error()
 
       return {
         code: 200,

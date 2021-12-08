@@ -133,7 +133,7 @@ module.exports = async f => {
     '/map/update',
     {
       schema: {
-        querystring: {
+        body: {
           type: 'object',
           properties: {
             name: { type: 'string' },
@@ -147,12 +147,10 @@ module.exports = async f => {
     async req => {
       const { name, data, id } = req.body
 
-      const rs = await f.db.query({
+      await f.db.query({
         sql: `UPDATE blade_visual_map SET name=?,data=? WHERE id=?`,
         values: [name, data, id],
       })
-
-      if (rs[0].changedRows !== 1) throw new Error()
 
       return {
         code: 200,
@@ -168,7 +166,7 @@ module.exports = async f => {
     '/map/remove',
     {
       schema: {
-        body: {
+        querystring: {
           type: 'object',
           properties: {
             ids: { type: 'number' },
@@ -185,7 +183,7 @@ module.exports = async f => {
         values: [ids],
       })
 
-      if (rs[0].changedRows !== 1) throw new Error()
+      if (rs[0].affectedRows !== 1) throw new Error()
 
       return {
         code: 200,

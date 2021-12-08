@@ -212,11 +212,14 @@ module.exports = async f => {
               type: 'object',
               properties: {
                 id: { type: 'number' },
+                categoryId: { type: 'number' },
+                password: { type: 'string' },
+                title: { type: 'string' },
                 backgroundUrl: { type: 'string' },
               },
             },
           },
-          required: ['config', 'visual'],
+          required: ['visual'],
         },
       },
     },
@@ -225,18 +228,16 @@ module.exports = async f => {
 
       // 事务
       let rs = await f.db.query({
-        sql: `UPDATE blade_visual SET background_url=? WHERE id=?`,
-        values: [visual.backgroundUrl, visual.id],
+        sql: `UPDATE blade_visual SET password=?,title=?,background_url=? WHERE id=?`,
+        values: [visual.password, visual.title, visual.backgroundUrl, visual.id],
       })
 
-      if (rs[0].changedRows !== 1) throw new Error()
-
-      rs = await f.db.query({
-        sql: `UPDATE blade_visual_config SET component=?,detail=? WHERE id=?`,
-        values: [config.component, config.detail, config.id],
-      })
-
-      if (rs[0].changedRows !== 1) throw new Error()
+      if (config) {
+        rs = await f.db.query({
+          sql: `UPDATE blade_visual_config SET component=?,detail=? WHERE id=?`,
+          values: [config.component, config.detail, config.id],
+        })
+      }
 
       return {
         code: 200,
@@ -264,12 +265,10 @@ module.exports = async f => {
     async req => {
       const { ids } = req.query
 
-      const rs = await f.db.query({
+      await f.db.query({
         sql: `UPDATE blade_visual SET is_deleted=1 WHERE id=?`,
         values: [ids],
       })
-
-      if (rs[0].changedRows !== 1) throw new Error()
 
       return {
         code: 200,
@@ -308,7 +307,7 @@ module.exports = async f => {
       const visual = {
         status: rs.status,
         is_deleted: rs.is_deleted,
-        categoryId: rs.categoryId,
+        category_id: rs.category_id,
         password: rs.password,
         title: rs.title,
       }
