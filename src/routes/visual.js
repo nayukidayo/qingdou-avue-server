@@ -1,7 +1,9 @@
 const fs = require('fs')
+const path = require('path')
 const util = require('util')
 const { pipeline } = require('stream')
 const pump = util.promisify(pipeline)
+const uploadPath = path.join(__dirname, '../../upload')
 
 module.exports = async f => {
   // 详情
@@ -383,7 +385,8 @@ module.exports = async f => {
     },
     async req => {
       const file = await req.file()
-      await pump(file.file, fs.createWriteStream(`upload/${file.filename}`))
+      const filePath = path.join(uploadPath, file.filename)
+      await pump(file.file, fs.createWriteStream(filePath))
       const data = {
         link: `/upload/${file.filename}`,
       }
